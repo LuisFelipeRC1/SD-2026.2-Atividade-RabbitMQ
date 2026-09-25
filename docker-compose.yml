@@ -1,0 +1,84 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  converter1:
+    build: .
+    command: python -m app.converter
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      CONVERTER_NAME: converter1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  converter2:
+    build: .
+    command: python -m app.converter
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      CONVERTER_NAME: converter2
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  storage1:
+    build: .
+    command: python -m app.storage
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      STORAGE_NAME: storage1
+      STORAGE_DIR: /data/storage1
+    volumes:
+      - ./data/storage1:/data/storage1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  storage2:
+    build: .
+    command: python -m app.storage
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      STORAGE_NAME: storage2
+      STORAGE_DIR: /data/storage2
+    volumes:
+      - ./data/storage2:/data/storage2
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  client1:
+    build: .
+    command: python -m app.client /data/client1
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      CLIENT_NAME: client1
+    volumes:
+      - ./data/client1:/data/client1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    profiles: ["clients"]
+
+  client2:
+    build: .
+    command: python -m app.client /data/client2
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      CLIENT_NAME: client2
+    volumes:
+      - ./data/client2:/data/client2
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    profiles: ["clients"]
