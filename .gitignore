@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+data/client1/*
+data/client2/*
+data/storage1/*
+data/storage2/*
+!data/client1/.gitkeep
+!data/client2/.gitkeep
+!data/storage1/.gitkeep
+!data/storage2/.gitkeep
